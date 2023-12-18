@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TWallProgramManifest>
+    <Description Language="en">Team RevvoX gotcha in english!</Description>
+    <Description Language="de">Team RevvoX gotcha in german!</Description>
+    <Tags>Tag1, Tag2, Tag3</Tags>
+    <StatusDisplay>
+        <DisplayType>FreeProgram</DisplayType>
+        <MaxTime>60</MaxTime>
+        <MissIndicator>true</MissIndicator>
+        <HitIndicator>true</HitIndicator>
+        <Players>1</Players>
+    </StatusDisplay>
+    <Rating RatingMode="Hits" Sorting="-hits"/>
+</TWallProgramManifest>

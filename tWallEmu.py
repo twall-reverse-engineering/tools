@@ -2,11 +2,32 @@ import socket
 import datetime
 import threading
 import time
+import os
 
 logger_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 logger_ip = None
 logger_port = 33401
 software_version = "2023-12-18T12:00:00"
+packages = None
+
+
+def read_packages():
+    global packages
+    packages = {}
+    pkg_dir = "pkgs"
+    for name in os.listdir(pkg_dir):
+        pkg_path = os.path.join(pkg_dir, name)
+        
+        pkg_info = {}
+
+        pkg_info["imgUrl"] = read_file_and_remove_newlines(os.path.join(pkg_path, "image.url"))
+        pkg_info["list"] = read_file_and_remove_newlines(os.path.join(pkg_path, "list.csv"))
+        pkg_info["manifest"] = read_file_and_remove_newlines(os.path.join(pkg_path, "manifest.xml"))
+
+        packages[name+".pkg"] = pkg_info
+
+        print(f"Read package {name}")
+    return None
 
 def serve_twall_csv():
     global software_version
@@ -32,7 +53,7 @@ def serve_twall_csv():
             server_socket.sendto(fake_response.encode("ASCII"), client_address)
 
 def serve_twall():
-    global logger_ip
+    global logger_ip, packages
 
     server_ip = "0.0.0.0"
     server_port = 33400
@@ -69,10 +90,10 @@ def serve_twall():
             command = command_with_args[0]
             args = command_with_args[1::]
 
-            response = None
+            response = "ERROR"
             if command == "log_ext":
                 logger_ip = args[0]
-                response = ""
+                response = "OK"
                 # optional?
                 # send_log_message("param", "name")
             elif command == "version":
@@ -84,7 +105,7 @@ def serve_twall():
             elif command == "set_date":
                 response = "OK" # Crash if not there
             elif command == "twall_info":
-                response = f"OK\nwidth:8\nheight:8\ntwall_type:other\nlanguage:de\n."
+                response = f"OK\nwidth:8\nheight:8\ntwall_type:honeybee\nlanguage:de\n."
             elif command == "abort":
                 response = "OK"
             elif command == "logout":
@@ -118,13 +139,27 @@ def serve_twall():
                 response = "OK\n."
             elif command == "list":
                 # tags "fav,two_players,agility,condition,childrens_game,brain_teaser,with_sound
-                response = "OK\nWeiss;Weiss.pkg;two_players\nTest;Test.pkg\n."
+                # response = "OK\nWeiss;Weiss.pkg;two_players\nTest;Test.pkg\n."
+                response = "OK\n"
+                for name, data in packages.items():
+                    response += data["list"]
+                    response += "\n"
+
+                response += "."
             elif command == "get_manifest":
-                response = "ERROR"
+                # response = "OK\nkey:value\n."
+                # response = "OK\n" + read_file_and_remove_newlines("Test.xml") + "\n."
+
+                if args[0] in packages:
+                    response = "OK\n"
+                    response += packages[args[0]]["manifest"]
+                    response += "\n."
             elif command == "get_program_image":
-                response = "ERROR"
-            else:
-                response = "ERROR"
+                # response = "OK https://avatars.githubusercontent.com/u/1385855?s=96&v=4"
+                # response = "OK http://www.scilor.com/"
+                if args[0] in packages:
+                    response = "OK "
+                    response += packages[args[0]]["imgUrl"]
                 
             if response is not None:
                 print(f"[tWall] answer: {response}")
@@ -156,10 +191,22 @@ def is_socket_open(sock):
     except (socket.error, OSError):
         # An exception will be raised if the socket is closed
         return False
+    
+def read_file_and_remove_newlines(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            # Read the file contents and remove newlines
+            content = file.read().replace('\n', '')
+            return content
+    except FileNotFoundError:
+        return f"File not found: {file_path}"
+    except Exception as e:
+        return f"Error reading file: {e}"
 
 def serve_twall_log():
     pass
 
 if __name__ == "__main__":
+    read_packages()
     twall_thread = threading.Thread(target=serve_twall)
     twall_thread.start()

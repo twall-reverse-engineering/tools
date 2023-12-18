@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TWallProgramManifest>
+    <Description Language="en">Test en Description</Description>
+    <Description Language="de">Test de Description</Description>
+    <Tags>Tag1, Tag2, Tag3</Tags>
+    <StatusDisplay>
+        <DisplayType>FreeProgram</DisplayType>
+        <MaxTime>60</MaxTime>
+        <MissIndicator>true</MissIndicator>
+        <HitIndicator>true</HitIndicator>
+        <Players>1</Players>
+    </StatusDisplay>
+    <Rating RatingMode="Hits" Sorting="-hits"/>
+</TWallProgramManifest>
